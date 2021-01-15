@@ -36,22 +36,15 @@ public:
 	{
 		cout << val_txt;
 	}
-	string get()
+	string get() override
 	{
 		return val_txt;
 	}
-	void set(string x)
+	void set(string x) override
 	{
 		val_txt = x;
 	}
-	friend ostream& operator<<(ostream& out, valoare_text v);
 };
-
-ostream& operator<<(ostream& out, valoare_text v)
-{
-	out << v;
-	return out;
-}
 
 class valoare_int : public valoare
 {
@@ -76,22 +69,15 @@ public:
 	{
 		cout << val_int;
 	}
-	string get()
+	string get() override
 	{
 		return to_string(val_int);
 	}
-	void set(string x)
+	void set(string x) override
 	{
 		val_int = stoi(x);
 	}
-	friend ostream& operator<<(ostream& out, valoare_int v);
 };
-
-ostream& operator<<(ostream& out, valoare_int v)
-{
-	out << v;
-	return out;
-}
 
 class valoare_float : public valoare
 {
@@ -117,89 +103,37 @@ public:
 		cout << val_float;
 	}
 
-	string get()
+	string get() override
 	{
 		return to_string(val_float);
 	}
-	void set(string x)
+	void set(string x) override
 	{
 		val_float = stof(x);
 	}
-	friend ostream& operator<<(ostream& out, valoare_float v);
 };
-
-ostream& operator<<(ostream& out, valoare_float v)
-{
-	out << v;
-	return out;
-}
 
 class coloana
 {
 protected:
-	vector<valoare*> valori;
+	int index;
 	string nume;
 	string tip;
 	static string val_implicita;
 	int dimensiune;
+	static int nr_coloane;
 public:
-	coloana()
-	{
-		nume = "";
-		tip = "";
-		dimensiune = 0;
-	}
-	coloana(string nume, string tip, int dimensiune, string implicita)
+	coloana(string nume = "", string tip = "", int dimensiune = 0, string implicita = "")
 	{
 		this->nume = nume;
 		this->tip = tip;
 		this->dimensiune = dimensiune;
 		val_implicita = implicita;
+		nr_coloane++;
+		index = nr_coloane;
 	}
 
-	void setColoana(string nume, string tip, int dimensiune, string implicita)
-	{
-		this->nume = nume;
-		this->tip = tip;
-		this->dimensiune = dimensiune;
-		val_implicita = implicita;
-	}
-	void adaugare_valoare(int x)
-	{
-		valori.push_back(new valoare_int(x));
-	}
-	void adaugare_implicita(string tip)
-	{
-		if (tip == "integer")
-		{
-			valori.push_back(new valoare_int(stoi(val_implicita)));
-		}
-		else if (tip == "float")
-		{
-			valori.push_back(new valoare_float(stof(val_implicita)));
-		}
-		else if (tip == "text")
-		{
-			valori.push_back(new valoare_text(val_implicita));
-		}
-	}
-	void adaugare_valoare(float x)
-	{
-		valori.push_back(new valoare_float(x));
-	}
-	void adaugare_valoare(string x)
-	{
-		valori.push_back(new valoare_text(x));
-	}
-	void afisare_valori()
-	{
-		for (int i = 0; i < valori.size(); i++)
-		{
-			valori[i]->afiseaza();
-			cout << endl;
-		}
-	}
-	void afisare_coloana()
+	void display_coloana()
 	{
 		cout << "Nume coloana: " << nume << endl;
 		cout << "Tip coloana: " << tip << endl;
@@ -216,33 +150,34 @@ public:
 	{
 		return nume;
 	}
-	vector<valoare*> getValori()
+	int getIndex()
 	{
-		return valori;
+		return index;
 	}
 };
 string coloana::val_implicita = "";
+int coloana::nr_coloane = -1;
+
+bool in_lista(vector<string> lista, string coloana)
+{
+	bool ok = false;
+	for (int i = 0; i < lista.size(); i++)
+		if (lista[i] == coloana) ok = true;
+	return ok;
+}
 
 class tabel
 {
 protected:
-	vector<coloana*> coloane;
 	string nume_tabel;
+	vector<vector<valoare*>> inreg;
+	vector<coloana*> coloane;
 public:
-	tabel()
-	{
-		nume_tabel = "";
-	}
-	tabel(string nume)
-	{
-		this->nume_tabel = nume;
-	}
-	tabel(string nume_tabel, vector<string> s)
+	tabel(vector<string> s, string nume_tabel = "")
 	{
 		string nume, tip, val_implicita;
 		int dimensiune;
 		this->nume_tabel = nume_tabel;
-		coloana c;
 		for (int i = 0; i < s.size(); i = i + 4)
 		{
 			nume = s[i];
@@ -251,127 +186,140 @@ public:
 			val_implicita = s[i + 3];
 			coloane.push_back(new coloana(nume, tip, dimensiune, val_implicita));
 		}
+		for (int i = 0; i < s.size() / 4; i++)
+		{
+			vector<valoare*> v;
+			inreg.push_back(v);
+		}
 	}
-	void adaugare_coloana(coloana& c)
+	void adaugare_inregistrare(vector<string> valori)
 	{
-		coloane.push_back(&c);
+		if (valori.size() != coloane.size())
+		{
+			cout << "\nNu sunt introduse valori pentru toate coloanele!\n";
+		}
+		else
+		{
+			for (int i = 0; i < coloane.size(); i++)
+			{
+				if (coloane[i]->getTip() == "integer")
+				{
+					inreg[i].push_back(new valoare_int(stoi(valori[i])));
+				}
+				if (coloane[i]->getTip() == "float")
+				{
+					inreg[i].push_back(new valoare_float(stof(valori[i])));
+				}
+				if (coloane[i]->getTip() == "text")
+				{
+					inreg[i].push_back(new valoare_text(valori[i]));
+				}
+			}
+		}
 	}
-	void display_table()
-	{
+	friend ostream& operator<<(ostream& out, tabel t);
 
-	}
-	void afisare_valori_coloana(string nume)
+
+	void afisare_coloane(vector<string> coloana_select, string coloana_where, string valoare_where)
 	{
-		cout << "Datele din coloana " << nume << endl;
-		cout << "------------------------------------\n";
+		vector<string>::iterator it;
 		for (int i = 0; i < coloane.size(); i++)
 		{
-			if (coloane[i]->getNumeC() == nume)
+			it = find(coloana_select.begin(), coloana_select.end(), coloane[i]->getNumeC());
+			if (it != coloana_select.end())
 			{
-				coloane[i]->afisare_valori();
+				cout << coloane[i]->getNumeC() << "\t";
 			}
 		}
-		cout << endl;
-	}
-	void afisare_tabel(string nume_coloana = "", string valoare_coloana = "")
-	{
-		cout << endl;
-		cout << "Datele din tabelul " << nume_tabel << endl;
-		cout << "------------------------------------\n";
-		for (int k = 0; k < coloane.size(); k++)
+		cout << "\n";
+		bool it2;
+		for (int i = 0; i < inreg[0].size(); i++)
 		{
-			cout << getColoane()[k]->getNumeC() << "\t";
-		}
-		cout << endl;
-		cout << "------------------------------------\n";
-		for (int i = 0; i < coloane[0]->getValori().size(); i++)//pentru cate valori se repeta
-		{
-			if (nume_coloana != "" && valoare_coloana != "")
+
+			for (int j = 0; j < inreg.size(); j++)
 			{
-				where(nume_coloana, valoare_coloana);
-			}
-			else
-			{
-				for (int k = 0; k < coloane.size(); k++)//pentru numarul coloanei
+				it2 = in_lista(coloana_select, coloane[j]->getNumeC());
+				if (coloane[j]->getNumeC() == coloana_where && inreg[j][i]->get() != valoare_where && coloana_where != "" && valoare_where != "")
 				{
-					coloane[k]->getValori()[i]->afiseaza();
+					break;
+				}
+				if (it2)
+				{
+					cout << "|";
+					inreg[j][i]->afiseaza();
 					cout << "\t";
 				}
-				cout << endl;
 			}
+			if (it2) cout << "\n";
 		}
 	}
-	void afisare_tabel(vector<string> s, string nume_coloana = "", string valoare_coloana = "")
-	{
-		cout << endl;
-		cout << "Datele din tabelul " << nume_tabel << endl;
-		cout << "------------------------------------\n";
-		for (int k = 0; k < coloane.size(); k++)
-		{
-			if (count(s.begin(), s.end(), getColoane()[k]->getNumeC()) != 0)//verifica daca o coloana se afla in lista de coloane de afisat
-			{
-				cout << getColoane()[k]->getNumeC() << "\t";
-			}
-		}
-		cout << endl;
-		cout << "------------------------------------\n";
-		for (int i = 0; i < coloane[0]->getValori().size(); i++)//pentru cate valori se repeta
-		{
-			if (nume_coloana != "" && valoare_coloana != "")
-			{
-				where(nume_coloana, valoare_coloana);
-			}
-			else
-			{
-				for (int k = 0; k < coloane.size(); k++)//pentru numarul coloanei
-				{
-					if (count(s.begin(), s.end(), getColoane()[k]->getNumeC()) != 0)
-					{
-						coloane[k]->getValori()[i]->afiseaza();
-						cout << "\t";
-					}
-				}
-				cout << endl;
-			}
 
+	void update_linie(int i, string coloana_set, string valoare_set)
+	{
+		for (int j = 0; j < inreg.size(); j++)
+		{
+			if (coloane[j]->getNumeC() == coloana_set)
+			{
+				inreg[j][i]->set(valoare_set);
+			}
 		}
 	}
-	vector<coloana*> getColoane()
+
+	void delete_coloana(int coloana_delete)
+	{
+		for (int i = 0; i < inreg.size(); ++i)
+		{
+			if (inreg[i].size() > coloana_delete)
+			{
+				inreg[i].erase(inreg[i].begin() + coloana_delete);
+			}
+		}
+	}
+
+	vector<coloana*> Coloane()
 	{
 		return coloane;
 	}
+
+	vector<vector<valoare*>> Inregistrari()
+	{
+		return inreg;
+	}
+
 	string getNumeT()
 	{
 		return nume_tabel;
 	}
-	string afiseaza_nume_tabel() {
-		return this->nume_tabel;
-	}
-	void where(string nume_coloana, string valoare_coloana)
+
+	vector<string> Nume_coloane()
 	{
+		vector<string> s;
 		for (int i = 0; i < coloane.size(); i++)
 		{
-			if (coloane[i]->getNumeC() == nume_coloana)
-			{
-				for (int j = 0; j < coloane[i]->getValori().size(); j++)
-				{
-					if (coloane[i]->getValori()[j]->get() == valoare_coloana)
-					{
-						for (int k = 0; k < coloane.size(); k++)
-						{
-							coloane[k]->getValori()[j]->afiseaza();
-							cout << " ";
-						}
-					}
-				}
-			}
+			s.push_back(coloane[i]->getNumeC());
 		}
-	}
-	void setNumeT(string nume)
-	{
-		nume_tabel = nume;
+		return s;
 	}
 };
+ostream& operator<<(ostream& out, tabel t)
+{
+	for (int i = 0; i < t.coloane.size(); i++)
+	{
+		out << t.coloane[i]->getNumeC() << "\t";
+	}
+	cout << "\n";
+	for (int i = 0; i < t.coloane.size(); i++)
+	{
+		for (int j = 0; j < t.inreg[i].size(); j++)
+		{
+			cout << "|";
+			t.inreg[j][i]->afiseaza();
+			cout << "\t";
+		}
+		cout << "\n";
+	}
+	return out;
+}
 
 class database
 {
@@ -381,7 +329,7 @@ public:
 
 	void Create_table(string nume_tabel, vector<string> s)
 	{
-		tabele.push_back(new tabel(nume_tabel, s));
+		tabele.push_back(new tabel(s, nume_tabel));
 	}
 
 	void Display_table(string nume)
@@ -390,9 +338,9 @@ public:
 		{
 			if (tabele[i]->getNumeT() == nume)
 			{
-				for (int j = 0; j < tabele[i]->getColoane().size(); j++)
+				for (int j = 0; j < tabele[i]->Coloane().size(); j++)
 				{
-					tabele[i]->getColoane()[j]->afisare_coloana();
+					tabele[i]->Coloane()[j]->display_coloana();
 					cout << endl;
 				}
 			}
@@ -405,45 +353,51 @@ public:
 		{
 			if (tabele[i]->getNumeT() == nume)
 			{
-				for (int j = 0; j < tabele[i]->getColoane().size(); j++)
-				{
-					if (tabele[i]->getColoane()[j]->getTip() == "int")
-					{
-						int val = stoi(s[j]);
-						tabele[i]->getColoane()[j]->adaugare_valoare(val);
-					}
-					else if (tabele[i]->getColoane()[j]->getTip() == "float")
-					{
-						float val = stof(s[j]);
-						tabele[i]->getColoane()[j]->adaugare_valoare(val);
-					}
-					else if (tabele[i]->getColoane()[j]->getTip() == "text")
-					{
-						tabele[i]->getColoane()[j]->adaugare_valoare(s[j]);
-					}
-				}
+				tabele[i]->adaugare_inregistrare(s);
 			}
 		}
 	}
 
-	void Select_All(string nume, string nume_coloana, string valoare_coloana)
+	void Select(string nume_tabel)
 	{
 		for (int i = 0; i < tabele.size(); i++)
 		{
-			if (tabele[i]->getNumeT() == nume)
+			if (tabele[i]->getNumeT() == nume_tabel)
 			{
-				tabele[i]->afisare_tabel(nume_coloana, valoare_coloana);
+				tabele[i]->afisare_coloane(tabele[i]->Nume_coloane(), "", "");
 			}
 		}
 	}
 
-	void Select(string nume, vector<string> s)
+	void Select(string nume_tabel, vector<string> s)
 	{
 		for (int i = 0; i < tabele.size(); i++)
 		{
-			if (tabele[i]->getNumeT() == nume)
+			if (tabele[i]->getNumeT() == nume_tabel)
 			{
-				tabele[i]->afisare_tabel(s);
+				tabele[i]->afisare_coloane(s, "", "");
+			}
+		}
+	}
+
+	void Select(string nume_tabel, vector<string> s, string coloana_where, string valoare_where)
+	{
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				tabele[i]->afisare_coloane(s, coloana_where, valoare_where);
+			}
+		}
+	}
+
+	void Select(string nume_tabel, string coloana_where, string valoare_where)
+	{
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				tabele[i]->afisare_coloane(tabele[i]->Nume_coloane(), coloana_where, valoare_where);
 			}
 		}
 	}
@@ -455,37 +409,46 @@ public:
 		{
 			if (tabele[i]->getNumeT() == nume_tabel)
 			{
-				tabele[i]->getColoane().clear();
-				tabele[i]->setNumeT("");
+				tabele[i]->Coloane().clear();
+				tabele[i]->Inregistrari().clear();
 			}
 		}
 		cout << "> Tabelul cu numele " << nume_tabel << " a fost eliminat cu succes!" << endl;
 	}
 
-	bool Update(string nume_tabel, string coloana_where, string val_where, string coloana_set, string val_set)
+	void Update(string nume_tabel, string coloana_where, string valoare_where, string coloana_set, string valoare_set)
 	{
-		for (int a = 0; a < tabele.size(); a++)
+		for (int i = 0; i < tabele.size(); i++)
 		{
-			if (tabele[a]->getNumeT() == nume_tabel)
+			if (tabele[i]->getNumeT() == nume_tabel)
 			{
-				for (int i = 0; i < tabele[i]->getColoane().size(); i++)
+				for (int j = 0; j < tabele[i]->Inregistrari()[0].size(); j++)
 				{
-					if (tabele[i]->getColoane()[i]->getNumeC() == coloana_where)
+					for (int k = 0; k < tabele[i]->Inregistrari().size(); k++)
 					{
-						for (int j = 0; j < tabele[i]->getColoane()[i]->getValori().size(); j++)
+						if (tabele[i]->Coloane()[k]->getNumeC() == coloana_where && tabele[i]->Inregistrari()[k][j]->get() == valoare_where)
 						{
-							if (tabele[i]->getColoane()[i]->getValori()[j]->get() == val_where)
-							{
-								for (int k = 0; k < tabele[i]->getColoane().size(); k++)
-								{
-									if (tabele[i]->getColoane()[k]->getNumeC() == coloana_set)
-									{
-										tabele[i]->getColoane()[k]->getValori()[j]->set(val_set);
-										return true;
-									}
-								}
-								return false;
-							}
+							tabele[i]->update_linie(j, coloana_set, valoare_set);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void Delete(string nume_tabel, string coloana_where, string valoare_where)
+	{
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				for (int j = 0; j < tabele[i]->Inregistrari()[0].size(); j++)
+				{
+					for (int k = 0; k < tabele[i]->Inregistrari().size(); k++)
+					{
+						if (tabele[i]->Coloane()[k]->getNumeC() == coloana_where && tabele[i]->Inregistrari()[k][j]->get() == valoare_where)
+						{
+							tabele[i]->delete_coloana(j);
 						}
 					}
 				}
@@ -495,3 +458,38 @@ public:
 };
 
 
+/*int main()
+{
+	vector<string> parametrii = { "Nume","text","15","noname","Salariu","float","10","1000.5","Varsta","integer","3","18" };
+	tabel t(parametrii, "Angajati");
+	vector<string> valori = { "Maria","6500.7","19" };
+	t.adaugare_inregistrare(valori);
+	valori = { "Maria","4500.7","21" };
+	t.adaugare_inregistrare(valori);
+	valori = { "Costel","1200.8","23" };
+	t.adaugare_inregistrare(valori);
+	valori = { "Teodor","4300.8","29" };
+	t.adaugare_inregistrare(valori);
+
+	vector<string> coloane = { "Varsta","Salariu" };
+	//t.afisare_coloane(t.Nume_coloane(), "", "");
+
+	database d;
+	d.Create_table("Angajati", parametrii);
+	d.Display_table("Angajati");
+
+	d.Insert("Angajati", valori);
+	valori = { "Maria","4500.7","21" };
+	d.Insert("Angajati", valori);
+	valori = { "Costel","1200.8","23" };
+	d.Insert("Angajati", valori);
+	valori = { "Maria","9200.8","83" };
+	d.Insert("Angajati", valori);
+
+	d.Select("Angajati", coloane, "Nume", "Maria");
+	d.Update("Angajati", "Nume", "Maria", "Salariu", "9000");
+	d.Select("Angajati");
+	d.Delete("Angajati", "Nume", "Maria");
+	d.Select("Angajati");
+
+}*/
