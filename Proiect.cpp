@@ -225,10 +225,10 @@ bool prelucrare_comanda(vector<string> comanda, database& d, bool& err) {
 		}
 	}
 
-	//comanda DELETE FROM nume_tabela WHERE nume_coloană = valoare
+	//comanda DELETE FROM nume_tabela WHERE nume_coloanã = valoare
 	else if (comanda[0] == "DELETE")
 	{
-		if (comanda.size() == 7 && comanda[1]=="FROM" && comanda[3]=="WHERE" && comanda[5]=="=")
+		if (comanda.size() == 7 && comanda[1] == "FROM" && comanda[3] == "WHERE" && comanda[5] == "=")
 		{
 			if (tabelul_exista(comanda[2], d))
 			{
@@ -246,6 +246,72 @@ bool prelucrare_comanda(vector<string> comanda, database& d, bool& err) {
 			cout << "> Comanda incompleta!\n> UTILIZARE: DELETE FROM <nume_tabela> WHERE <nume_coloana> = <valoare>" << endl;
 		}
 	}
+	else if (comanda[0] == "ADD") {
+		if (comanda[1] == "COLLUMN" && comanda.size() == 7) {
+			if (tabelul_exista(comanda[2], d))
+			{
+				//citim parametrii
+				vector<string> parametrii;
+				for (int i = 3; i < comanda.size(); i++)
+				{
+					parametrii.push_back(comanda[i]);
+				}
+				d.AddCollumn(comanda[2], parametrii);
+
+			}
+			else
+			{
+				cout << "> Tabelul cu numele " << comanda[2] << " nu exista!" << endl;
+			}
+		}
+		else {
+			cout << "> Comanda incompleta!\n> UTILIZARE: ADD COLLUMN <nume_tabel> <nume_coloana> <tip> <dimensiune> <val_implicita>" << endl;
+		}
+	}
+	else if (comanda[0] == "SELECT") {
+		if (comanda.size() == 5)
+		{
+			if (comanda[1] == "AVERAGE") {
+				if (tabelul_exista(comanda[4], d))
+				{
+					d.SelectAverage(comanda[4], comanda[2]);
+				}
+				else
+				{
+					cout << "> Tabelul cu numele " << comanda[2] << " nu exista!" << endl;
+				}
+			}
+			else {
+				cout << "> Comanda incompleta!\n> UTILIZARE: SELECT AVERAGE <nume_coloana> FROM <nume_tabel>" << endl;
+			}
+			if (comanda[1] == "MIN") {
+				if (tabelul_exista(comanda[4], d))
+				{
+					d.SelectMin(comanda[4], comanda[2]);
+				}
+				else
+				{
+					cout << "> Tabelul cu numele " << comanda[2] << " nu exista!" << endl;
+				}
+			}
+			else {
+				cout << "> Comanda incompleta!\n> UTILIZARE: SELECT MIN <nume_coloana> FROM <nume_tabel>" << endl;
+			}
+			if (comanda[1] == "MAX") {
+				if (tabelul_exista(comanda[4], d))
+				{
+					d.SelectMax(comanda[4], comanda[2]);
+				}
+				else
+				{
+					cout << "> Tabelul cu numele " << comanda[2] << " nu exista!" << endl;
+				}
+			}
+			else {
+				cout << "> Comanda incompleta!\n> UTILIZARE: SELECT MAX <nume_coloana> FROM <nume_tabel>" << endl;
+			}
+		}
+	}
 	else
 	{
 		cout << "> Comanda incorecta!" << endl;
@@ -258,6 +324,7 @@ bool prelucrare_comanda(vector<string> comanda, database& d, bool& err) {
 
 void afisare_meniu()
 {
+	cout << "\n-------------------------------------------------------------------------------------------------\n";
 	cout << "Optiuni posibile:\n";
 	cout << "\tCREATE TABLE <nume_tabel> <nume_coloana1> <tip1> <dimensiune1> <val_implicita_1> [nume_coloana2] [tip_2] [val_implicita_2] ...\n";
 	cout << "\tDISPLAY TABLE <nume_tabel>\n";
@@ -267,6 +334,9 @@ void afisare_meniu()
 	cout << "\tUPDATE <nume_tabela> SET <nume_coloana> = <valoare> WHERE <nume_coloana> = <valoare>\n";
 	cout << "\tDROP TABLE <nume_tabel>\n";
 	cout << "\tDELETE FROM <nume_tabela> WHERE <nume_coloana> = <valoare>\n";
+	cout << "\tADD COLLUMN <nume_tabel> <nume_coloana> <tip> <dimensiune> <val_implicita>\n";
+	cout << "\texit\n";
+	cout << "\n-------------------------------------------------------------------------------------------------\n";
 }
 
 void citire_comenzi()
@@ -291,8 +361,8 @@ void citire_comenzi()
 
 void main()
 {
-	//citire_comenzi();
-	vector<string> parametrii = { "Nume","text","15","noname","Salariu","float","10","1000.5","Varsta","integer","3","18" };
+	citire_comenzi();
+	/*vector<string> parametrii = { "Nume","text","15","noname","Salariu","float","10","1000.5","Varsta","integer","3","18" };
 	tabel t(parametrii, "Angajati");
 	vector<string> valori = { "Maria","6500.7","19" };
 	t.adaugare_inregistrare(valori);
@@ -307,5 +377,5 @@ void main()
 	t.afisare_coloane(coloane, "", "");
 
 	database d;
-	d.Create_table("Angajati", parametrii);
+	d.Create_table("Angajati", parametrii);*/
 }
