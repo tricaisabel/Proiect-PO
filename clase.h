@@ -192,6 +192,120 @@ public:
 			inreg.push_back(v);
 		}
 	}
+
+	void medie_coloana(string nume_coloana)
+	{
+		for (int i = 0; i < coloane.size(); i++) {
+			if (coloane[i]->getNumeC() == nume_coloana) {
+				float medie;
+				if (coloane[i]->getTip() == "int") {
+					int suma = 0;
+					for (int j = 0; j < inreg[i].size(); j++) {
+						suma += stoi(inreg[i][j]->get());
+					}
+					medie = (float)suma / inreg[i].size();
+					cout << "\nValoarea medie de pe coloana " << nume_coloana << " este: " << medie << endl;
+				}
+				else if (coloane[i]->getTip() == "float") {
+					float suma = 0;
+					for (int j = 0; j < inreg[i].size(); j++) {
+						suma += stof(inreg[i][j]->get());
+					}
+					medie = suma / inreg[i].size();
+					cout << "\nValoarea medie de pe coloana " << nume_coloana << " este: " << medie << endl;
+				}
+				else {
+					cout << "Coloana trebuie sa fie de tipul int sau float." << endl;
+				}
+			}
+			else {
+				cout << "Coloana cu numele " << nume_coloana << " nu exista!\n";
+			}
+		}
+	}
+
+	void minim_coloana(string nume_coloana)
+	{
+		for (int i = 0; i < coloane.size(); i++) {
+			if (coloane[i]->getNumeC() == nume_coloana) {
+				if (coloane[i]->getTip() == "int") {
+					int min = stoi(inreg[i][0]->get());
+					for (int j = 1; j < inreg[i].size(); j++) {
+						if (stoi(inreg[i][j]->get()) < min) {
+							min = stoi(inreg[i][j]->get());
+						}
+					}
+					cout << "\nValoarea minima de pe coloana " << nume_coloana << " este: " << min << endl;
+				}
+				else if (coloane[i]->getTip() == "float") {
+					float min = stof(inreg[i][0]->get());
+					for (int j = 1; j < inreg[i].size(); j++) {
+						if (stof(inreg[i][j]->get()) < min) {
+							min = stof(inreg[i][j]->get());
+						}
+					}
+					cout << "\nValoarea minima de pe coloana " << nume_coloana << " este: " << min << endl;
+				}
+				else {
+					cout << "Coloana trebuie sa fie de tipul int sau float." << endl;
+				}
+			}
+			else {
+				cout << "Coloana cu numele " << nume_coloana << " nu exista!\n";
+			}
+		}
+	}
+
+	void maxim_coloana(string nume_coloana)
+	{
+		for (int i = 0; i < coloane.size(); i++) {
+			if (coloane[i]->getNumeC() == nume_coloana) {
+				if (coloane[i]->getTip() == "int") {
+					int max = stoi(inreg[i][0]->get());
+					for (int j = 1; j < inreg[i].size(); j++) {
+						if (stoi(inreg[i][j]->get()) > max) {
+							max = stoi(inreg[i][j]->get());
+						}
+					}
+					cout << "\nValoarea minima de pe coloana " << nume_coloana << " este: " << max << endl;
+				}
+				else if (coloane[i]->getTip() == "float") {
+					float max = stof(inreg[i][0]->get());
+					for (int j = 1; j < inreg[i].size(); j++) {
+						if (stof(inreg[i][j]->get()) > max) {
+							max = stof(inreg[i][j]->get());
+						}
+					}
+					cout << "\nValoarea minima de pe coloana " << nume_coloana << " este: " << max << endl;
+				}
+				else {
+					cout << "Coloana trebuie sa fie de tipul int sau float." << endl;
+				}
+			}
+			else {
+				cout << "Coloana cu numele " << nume_coloana << " nu exista!\n";
+			}
+		}
+	}
+
+	void adaugare_coloana(vector<string> s) {
+		string nume, tip, val_implicita;
+		int dimensiune;
+		for (int i = 0; i < s.size(); i = i + 4)
+		{
+			nume = s[i];
+			tip = s[i + 1];
+			dimensiune = stoi(s[i + 2]);
+			val_implicita = s[i + 3];
+			coloane.push_back(new coloana(nume, tip, dimensiune, val_implicita));
+		}
+		for (int i = 0; i < s.size() / 4; i++)
+		{
+			vector<valoare*> v;
+			inreg.push_back(v);
+		}
+	}
+
 	void adaugare_inregistrare(vector<string> valori)
 	{
 		if (valori.size() != coloane.size())
@@ -219,47 +333,13 @@ public:
 	}
 	friend ostream& operator<<(ostream& out, tabel t);
 
-	/*
-	void afisare_coloane(vector<string> coloana_select, string coloana_where, string valoare_where)
-	{
-		vector<string>::iterator it;
-		for (int i = 0; i < coloane.size(); i++)
-		{
-			it = find(coloana_select.begin(), coloana_select.end(), coloane[i]->getNumeC());
-			if (it != coloana_select.end())
-			{
-				cout << coloane[i]->getNumeC() << "\t";
-			}
-		}
-		cout << "\n";
-		bool it2;
-		for (int i = 0; i < inreg[0].size(); i++)
-		{
-
-			for (int j = 0; j < inreg.size(); j++)
-			{
-				it2 = in_lista(coloana_select, coloane[j]->getNumeC());
-				if (coloane[j]->getNumeC() == coloana_where && inreg[j][i]->get() != valoare_where && coloana_where != "" && valoare_where != "")
-				{
-					break;
-				}
-				if (it2)
-				{
-					cout << "|";
-					inreg[j][i]->afiseaza();
-					cout << "\t";
-				}
-			}
-			if (it2) cout << "\n";
-		}
-	}*/
 
 	bool conditie_where(vector<string> inreg, string coloana_where, string valoare_where)
 	{
-		bool ok=false;
+		bool ok = false;
 		for (int i = 0; i < coloane.size(); i++)
 		{
-			if ((coloane[i]->getNumeC() == coloana_where && inreg[i] == valoare_where) || (coloana_where==""))
+			if ((coloane[i]->getNumeC() == coloana_where && inreg[i] == valoare_where) || (coloana_where == ""))
 			{
 				ok = true;
 			}
@@ -276,7 +356,7 @@ public:
 			if (ok)
 			{
 				cout << "|";
-				cout<<inreg[i];
+				cout << inreg[i];
 				cout << "\t";
 			}
 		}
@@ -300,7 +380,7 @@ public:
 		{
 			for (int j = 0; j < inreg.size(); j++)//3
 				rand.push_back(inreg[j][i]->get());
-			if (conditie_where(rand,coloana_where,valoare_where))
+			if (conditie_where(rand, coloana_where, valoare_where))
 			{
 				afisare_inreg(rand, coloane_select);
 			}
@@ -461,6 +541,39 @@ public:
 		}
 	}
 
+	void SelectAverage(string nume_tabel, string nume_coloana)
+	{
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				tabele[i]->medie_coloana(nume_coloana);
+			}
+		}
+	}
+
+	void SelectMin(string nume_tabel, string nume_coloana)
+	{
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				tabele[i]->minim_coloana(nume_coloana);
+			}
+		}
+	}
+
+	void SelectMax(string nume_tabel, string nume_coloana)
+	{
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				tabele[i]->maxim_coloana(nume_coloana);
+			}
+		}
+	}
+
 	void Drop_table(string nume_tabel)
 	{
 
@@ -512,6 +625,16 @@ public:
 						}
 					}
 				}
+			}
+		}
+	}
+
+	void AddCollumn(string nume_tabel, vector<string> params) {
+		for (int i = 0; i < tabele.size(); i++)
+		{
+			if (tabele[i]->getNumeT() == nume_tabel)
+			{
+				tabele[i]->adaugare_coloana(params);
 			}
 		}
 	}
